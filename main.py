@@ -219,6 +219,9 @@ def game_loop():
 
     gameExit = False
 
+    aimx = display_width // 2
+    aimy = 0
+
     while not gameExit:
 
         for event in pygame.event.get():

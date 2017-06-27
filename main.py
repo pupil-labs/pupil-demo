@@ -30,7 +30,7 @@ pygame.display.set_caption('Space Explorer')
 clock = pygame.time.Clock()
 
 ship_width = 100
-ship_height= 100
+ship_height = 100
 shipx = (display_width * 0.45)
 shipy = (display_height - ship_height)
 shipImg = pygame.image.load('racecar.png')
@@ -167,8 +167,8 @@ class Meteor:
     def reset(self):
         self.x = random.randrange(0, display_width - self.width)
         self.y = -self.height
-        self.speed = random.randrange(5, 10) * 10
-        self.direction = np.array((random.randrange(7), 10))
+        self.speed = random.randrange(5, 10)
+        self.direction = np.array((random.randrange(3,7), 10))
         self.direction = self.direction / np.linalg.norm(self.direction)
 
     def move(self):
@@ -185,8 +185,8 @@ class Meteor:
 
 class Projectile:
     def __init__(self, direction, meteors):
-        self.x = (display_width * 0.45)
-        self.y = (display_height * 0.8)
+        self.x = shipx + ship_width // 2
+        self.y = shipy
         self.speed = 7
         self.meteors = meteors
         self.alive = True
@@ -203,7 +203,7 @@ class Projectile:
 
         for meteor in self.meteors:
             if self.y < meteor.y + meteor.height:
-                if self.x > meteor.x and self.x < meteor.x + meteor.width or self.x + car_width > meteor.x and self.x + car_width < meteor.x + meteor.width:
+                if self.x > meteor.x and self.x < meteor.x + meteor.width or self.x + ship_width > meteor.x and self.x + ship_width < meteor.x + meteor.width:
                     meteor.reset()
                     self.alive = False
 
@@ -216,10 +216,6 @@ def game_loop():
     # pygame.mixer.music.load('woosh.wav')
     # pygame.mixer.music.play(-1)
     ############
-
-    x_change = 0
-    # shipx = (display_width * 0.45)
-    # shipy = (display_height * 0.8)
 
     meteors = [Meteor() for i in range(nb_meteors)]
     projectiles = []
@@ -236,19 +232,27 @@ def game_loop():
                 quit()
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    x_change = -5
-                if event.key == pygame.K_RIGHT:
-                    x_change = 5
+                # if event.key == pygame.K_LEFT:
+                #     x_change = -5
+                # if event.key == pygame.K_RIGHT:
+                #     x_change = 5
                 if event.key == pygame.K_p:
                     pause = True
                     paused()
-                if event.key == pygame.K_UP:
-                    projectiles.append(Projectile((1,-1), meteors))
+
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                     x_change = 0
+
+        aimx, aimy = pygame.mouse.get_pos()
+        aimx = aimx - shipx
+        aimy = aimy - shipy
+        aim = np.array((aimx, aimy))
+        aim = aim / np.linalg.norm(aim)
+
+        projectiles.append(Projectile(aim, meteors))
+
 
 
         gameDisplay.fill(white)

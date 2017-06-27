@@ -37,7 +37,7 @@ class Connection(object):
             topic = self.sub.recv_string()  # required since we are recv 2-part msg
             msg = self.sub.recv()  # bytes
             surfaces = unpackb(msg, encoding='utf-8')
-            filtered_surface = {k: v for k, v in surfaces.iteritems() if surfaces['name'] == self.surface_name}
+            filtered_surface = {k: v for k, v in surfaces.items() if surfaces['name'] == self.surface_name}
             try:
                 # note that we may have more than one gaze position data point (this is expected behavior)
                 gaze_positions = filtered_surface['gaze_on_srf']

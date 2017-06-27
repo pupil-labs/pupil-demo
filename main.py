@@ -147,6 +147,7 @@ def game_intro():
         button("GO!", display_width * 0.35, display_height * 0.7, 100, 50, green, bright_green, game_loop)
         button("Quit", display_width * 0.65, display_height * 0.7, 100, 50, red, bright_red, quitgame)
 
+        surface_markers.draw(gameDisplay)
         pygame.display.update()
         clock.tick(15)
 
@@ -221,6 +222,8 @@ def game_loop():
 
     aimx = display_width // 2
     aimy = 0
+    aim = np.array((aimx, aimy))
+    aim = aim / np.linalg.norm(aim)
 
     while not gameExit:
 
@@ -245,12 +248,13 @@ def game_loop():
 
         # aimx, aimy = pygame.mouse.get_pos()
         pupil_positions = capture.recent_events()
-        if len(pupil_positions) > 0:
+        if pupil_positions:
             aimx, aimy = pupil_positions[-1]
-            aimx = aimx - shipx
-            aimy = aimy - shipy
+            aimx = aimx * display_width - shipx
+            aimy = aimy * display_height - shipy
             aim = np.array((aimx, aimy))
             aim = aim / np.linalg.norm(aim)
+            # print(aim)
 
         projectiles.append(Projectile(aim, meteors))
 

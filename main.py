@@ -241,11 +241,13 @@ def game_loop():
                     x_change = 0
 
         # aimx, aimy = pygame.mouse.get_pos()
-        aimx, aimy = pupil.recent_events()[-1]
-        aimx = aimx - shipx
-        aimy = aimy - shipy
-        aim = np.array((aimx, aimy))
-        aim = aim / np.linalg.norm(aim)
+        pupil_positions = pupil.recent_events()
+        if len(pupil_positions) > 0:
+            aimx, aimy = pupil_positions[-1]
+            aimx = aimx - shipx
+            aimy = aimy - shipy
+            aim = np.array((aimx, aimy))
+            aim = aim / np.linalg.norm(aim)
 
         projectiles.append(Projectile(aim, meteors))
 

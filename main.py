@@ -3,6 +3,8 @@ import time
 import random
 import numpy as np
 
+from pupil import Surface_Markers
+
 pygame.init()
 
 #############
@@ -25,7 +27,7 @@ bright_green = (0, 255, 0)
 block_color = (53, 115, 255)
 projectile_color = (0, 255, 255)
 
-gameDisplay = pygame.display.set_mode((display_width, display_height))
+gameDisplay = pygame.display.set_mode((0, 0))
 pygame.display.set_caption('Space Explorer')
 clock = pygame.time.Clock()
 
@@ -36,6 +38,7 @@ shipy = (display_height - ship_height)
 shipImg = pygame.image.load('racecar.png')
 shipImg = pygame.transform.scale(shipImg, (ship_width, ship_height))
 gameIcon = shipImg.copy() #pygame.image.load('racecar.jpg')
+surface_markers = Surface_Markers(marker_size=(100, 100))
 
 pygame.display.set_icon(gameIcon)
 
@@ -167,7 +170,7 @@ class Meteor:
     def reset(self):
         self.x = random.randrange(0, display_width - self.width)
         self.y = -self.height
-        self.speed = random.randrange(5, 10) * 10
+        self.speed = random.randrange(5, 10) * 5
         self.direction = np.array((random.randrange(7), 10))
         self.direction = self.direction / np.linalg.norm(self.direction)
 
@@ -268,14 +271,16 @@ def game_loop():
                 tmp.append(projectile)
         projectiles = tmp
 
+
         ship()
-        things_dodged(dodged)
+        # things_dodged(dodged)
 
         for meteor in meteors:
             if shipy < meteor.y + meteor.height:
                 if shipx < meteor.x and shipx + ship_width > meteor.x or shipx < meteor.x + meteor.width and shipx + ship_width > meteor.x + meteor.width:
                     crash()
 
+        surface_markers.draw(gameDisplay)
         pygame.display.update()
         clock.tick(60)
 

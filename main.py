@@ -23,23 +23,25 @@ bright_red = (255, 0, 0)
 bright_green = (0, 255, 0)
 
 block_color = (53, 115, 255)
-
-car_width = 73
+projectile_color = (0, 255, 255)
 
 gameDisplay = pygame.display.set_mode((display_width, display_height))
 pygame.display.set_caption('Space Explorer')
 clock = pygame.time.Clock()
 
-carImg = pygame.image.load('racecar.png')
-carImg = pygame.transform.scale(carImg, (100, 100))
-gameIcon = carImg.copy() #pygame.image.load('racecar.jpg')
+ship_width = 100
+ship_height= 100
+shipx = (display_width * 0.45)
+shipy = (display_height - ship_height)
+shipImg = pygame.image.load('racecar.png')
+shipImg = pygame.transform.scale(shipImg, (ship_width, ship_height))
+gameIcon = shipImg.copy() #pygame.image.load('racecar.jpg')
 
 pygame.display.set_icon(gameIcon)
 
 pause = False
 
-
-# crash = True
+nb_meteors = 10
 
 def things_dodged(count):
     font = pygame.font.SysFont("comicsansms", 25)
@@ -51,8 +53,9 @@ def things(thingx, thingy, thingw, thingh, color):
     pygame.draw.rect(gameDisplay, color, [thingx, thingy, thingw, thingh])
 
 
-def car(x, y):
-    gameDisplay.blit(carImg, (x, y))
+def ship():
+    # gameDisplay.blit(shipImg, (x, y))
+    pygame.draw.rect(gameDisplay, block_color, [shipx, shipy, ship_width, ship_height])
 
 
 def text_objects(text, font):
@@ -66,7 +69,7 @@ def crash():
     pygame.mixer.music.stop()
     ####################################
     largeText = pygame.font.SysFont("comicsansms", 115)
-    TextSurf, TextRect = text_objects("You Crashed", largeText)
+    TextSurf, TextRect = text_objects("Game Over", largeText)
     TextRect.center = ((display_width / 2), (display_height / 2))
     gameDisplay.blit(TextSurf, TextRect)
 
@@ -76,8 +79,8 @@ def crash():
                 pygame.quit()
                 quit()
 
-        button("Play Again", 150, 450, 100, 50, green, bright_green, game_loop)
-        button("Quit", 550, 450, 100, 50, red, bright_red, quitgame)
+        button("Play Again", display_width * 0.35, display_height * 0.7, 100, 50, green, bright_green, game_loop)
+        button("Quit", display_width * 0.65, display_height * 0.7, 100, 50, red, bright_red, quitgame)
 
         pygame.display.update()
         clock.tick(15)
@@ -125,8 +128,8 @@ def paused():
                 pygame.quit()
                 quit()
 
-        button("Continue", 150, 450, 100, 50, green, bright_green, unpause)
-        button("Quit", 550, 450, 100, 50, red, bright_red, quitgame)
+        button("Continue", display_width * 0.35, display_height * 0.7, 100, 50, green, bright_green, unpause)
+        button("Quit", display_width * 0.65, display_height * 0.7, 100, 50, red, bright_red, quitgame)
 
         pygame.display.update()
         clock.tick(15)
@@ -164,22 +167,48 @@ class Meteor:
     def reset(self):
         self.x = random.randrange(0, display_width - self.width)
         self.y = -self.height
-        self.speed = random.randrange(1, 10)
-        self.direction = np.array((1, 10))
+        self.speed = random.randrange(5, 10) * 10
+        self.direction = np.array((random.randrange(7), 10))
         self.direction = self.direction / np.linalg.norm(self.direction)
 
     def move(self):
         # Reset if no longer in bounds
-        # if self.y > display_height or self.x > display_width or self.x + self.width < display_width:
-        #     self.reset()
+        if self.y > display_height or self.x > display_width or self.x + self.width < 0:
+            self.reset()
 
-        self.x += self.direction[0]
-        self.y += self.direction[1]
-
-
+        self.x += self.speed * self.direction[0]
+        self.y += self.speed * self.direction[1]
 
     def draw(self):
         pygame.draw.rect(gameDisplay, block_color, [int(self.x), int(self.y), self.width, self.height])
+
+
+class Projectile:
+    def __init__(self, direction, meteors):
+        self.x = (display_width * 0.45)
+        self.y = (display_height * 0.8)
+        self.speed = 7
+        self.meteors = meteors
+        self.alive = True
+        self.length = 30
+        self.direction = direction / np.linalg.norm(direction)
+
+    def move(self):
+        # Reset if no longer in bounds
+        if self.y > display_height or self.x > display_width or self.x < 0:
+            self.alive = False
+
+        self.x += self.speed * self.direction[0]
+        self.y += self.speed * self.direction[1]
+
+        for meteor in self.meteors:
+            if self.y < meteor.y + meteor.height:
+                if self.x > meteor.x and self.x < meteor.x + meteor.width or self.x + car_width > meteor.x and self.x + car_width < meteor.x + meteor.width:
+                    meteor.reset()
+                    self.alive = False
+
+    def draw(self):
+        pygame.draw.line(gameDisplay, projectile_color, [int(self.x), int(self.y)], [int(self.x + self.direction[0] * self.length), int(self.y + self.direction[1] * self.length)], 5)
 
 def game_loop():
     global pause
@@ -187,12 +216,13 @@ def game_loop():
     # pygame.mixer.music.load('woosh.wav')
     # pygame.mixer.music.play(-1)
     ############
-    x = (display_width * 0.45)
-    y = (display_height * 0.8)
 
     x_change = 0
+    # shipx = (display_width * 0.45)
+    # shipy = (display_height * 0.8)
 
-    meteors = [Meteor() for i in range(4)]
+    meteors = [Meteor() for i in range(nb_meteors)]
+    projectiles = []
 
     dodged = 0
 
@@ -213,34 +243,38 @@ def game_loop():
                 if event.key == pygame.K_p:
                     pause = True
                     paused()
+                if event.key == pygame.K_UP:
+                    projectiles.append(Projectile((1,-1), meteors))
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                     x_change = 0
 
-        x += x_change
+
         gameDisplay.fill(white)
+
+        for projectile in projectiles:
+            projectile.move()
+            projectile.draw()
 
         for meteor in meteors:
             meteor.move()
             meteor.draw()
 
-        car(x, y)
+        # Remove dead projectiles
+        tmp = []
+        for projectile in projectiles:
+            if projectile.alive:
+                tmp.append(projectile)
+        projectiles = tmp
+
+        ship()
         things_dodged(dodged)
 
-        if x > display_width - car_width or x < 0:
-            crash()
-
-        if meteor.y > display_height:
-            meteor = Meteor()
-            dodged += 1
-
-        if y < meteor.y + meteor.height:
-            print('y crossover')
-
-            if x > meteor.x and x < meteor.x + meteor.width or x + car_width > meteor.x and x + car_width < meteor.x + meteor.width:
-                print('x crossover')
-                crash()
+        for meteor in meteors:
+            if shipy < meteor.y + meteor.height:
+                if shipx < meteor.x and shipx + ship_width > meteor.x or shipx < meteor.x + meteor.width and shipx + ship_width > meteor.x + meteor.width:
+                    crash()
 
         pygame.display.update()
         clock.tick(60)

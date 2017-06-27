@@ -3,7 +3,7 @@ import time
 import random
 import numpy as np
 
-from pupil import Surface_Markers
+from pupil import Surface_Markers, Connection
 
 pygame.init()
 
@@ -45,16 +45,6 @@ pygame.display.set_icon(gameIcon)
 pause = False
 
 nb_meteors = 10
-
-def things_dodged(count):
-    font = pygame.font.SysFont("comicsansms", 25)
-    text = font.render("Dodged: " + str(count), True, black)
-    gameDisplay.blit(text, (0, 0))
-
-
-def things(thingx, thingy, thingw, thingh, color):
-    pygame.draw.rect(gameDisplay, color, [thingx, thingy, thingw, thingh])
-
 
 def ship():
     # gameDisplay.blit(shipImg, (x, y))
@@ -214,6 +204,8 @@ class Projectile:
         pygame.draw.line(gameDisplay, projectile_color, [int(self.x), int(self.y)], [int(self.x + self.direction[0] * self.length), int(self.y + self.direction[1] * self.length)], 5)
 
 def game_loop():
+    pupil = Connection()
+
     global pause
     ############
     # pygame.mixer.music.load('woosh.wav')
@@ -248,7 +240,8 @@ def game_loop():
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                     x_change = 0
 
-        aimx, aimy = pygame.mouse.get_pos()
+        # aimx, aimy = pygame.mouse.get_pos()
+        aimx, aimy = pupil.recent_events()[-1]
         aimx = aimx - shipx
         aimy = aimy - shipy
         aim = np.array((aimx, aimy))

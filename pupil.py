@@ -78,4 +78,6 @@ class Surface_Markers(object):
                 y = game_surface.get_height() - m_img.get_height() - border_y
             elif idx == 3:
                 y = game_surface.get_height() - m_img.get_height() - border_y
+
+            pygame.draw.rect(game_surface, (255, 255, 255), [x - border_x, y - border_y, m_img.get_width() + 2 * border_x, m_img.get_height() + 2 * border_y])
             game_surface.blit(m_img, (x, y))

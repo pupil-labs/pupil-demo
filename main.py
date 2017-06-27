@@ -204,7 +204,7 @@ class Projectile:
         pygame.draw.line(gameDisplay, projectile_color, [int(self.x), int(self.y)], [int(self.x + self.direction[0] * self.length), int(self.y + self.direction[1] * self.length)], 5)
 
 def game_loop():
-    pupil = Connection()
+    capture = Connection()
 
     global pause
     ############
@@ -244,7 +244,7 @@ def game_loop():
                     x_change = 0
 
         # aimx, aimy = pygame.mouse.get_pos()
-        pupil_positions = pupil.recent_events()
+        pupil_positions = capture.recent_events()
         if len(pupil_positions) > 0:
             aimx, aimy = pupil_positions[-1]
             aimx = aimx - shipx

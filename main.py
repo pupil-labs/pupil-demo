@@ -3,6 +3,8 @@ import time
 import random
 import numpy as np
 
+from pupil import Surface_Markers
+
 pygame.init()
 
 #############
@@ -10,8 +12,8 @@ crash_sound = pygame.mixer.Sound("woosh.wav")
 #############
 
 display_info = pygame.display.Info()
-display_width = display_info.current_w // 2
-display_height = display_info.current_h
+display_height = int(0.9 * display_info.current_h)
+display_width = int((display_height/3) * 4)
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -36,6 +38,7 @@ shipy = (display_height - ship_height)
 shipImg = pygame.image.load('racecar.png')
 shipImg = pygame.transform.scale(shipImg, (ship_width, ship_height))
 gameIcon = shipImg.copy() #pygame.image.load('racecar.jpg')
+surface_markers = Surface_Markers(marker_size=(100, 100))
 
 pygame.display.set_icon(gameIcon)
 
@@ -272,14 +275,16 @@ def game_loop():
                 tmp.append(projectile)
         projectiles = tmp
 
+
         ship()
-        things_dodged(dodged)
+        # things_dodged(dodged)
 
         for meteor in meteors:
             if shipy < meteor.y + meteor.height:
                 if shipx < meteor.x and shipx + ship_width > meteor.x or shipx < meteor.x + meteor.width and shipx + ship_width > meteor.x + meteor.width:
                     crash()
 
+        surface_markers.draw(gameDisplay)
         pygame.display.update()
         clock.tick(60)
 

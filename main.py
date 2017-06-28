@@ -24,14 +24,16 @@ green = (0, 200, 0)
 bright_red = (255, 0, 0)
 bright_green = (0, 255, 0)
 
-block_color = (53, 115, 255)
+meteor_color = (53, 115, 255)
 projectile_color = (0, 255, 255)
+ship_color = (255, 0, 255)
+cross_hair_color = (255, 0, 0)
 
 gameDisplay = pygame.display.set_mode((display_width, display_height))
 pygame.display.set_caption('Space Explorer')
 clock = pygame.time.Clock()
 
-ship_width = 100
+ship_width = 300
 ship_height = 100
 shipx = (display_width * 0.45)
 shipy = (display_height - ship_height)
@@ -44,11 +46,15 @@ pygame.display.set_icon(gameIcon)
 
 pause = False
 
-nb_meteors = 10
+nb_meteors = 20
 
 def ship():
     # gameDisplay.blit(shipImg, (x, y))
-    pygame.draw.rect(gameDisplay, block_color, [shipx, shipy, ship_width, ship_height])
+    pygame.draw.rect(gameDisplay, ship_color, [shipx, shipy, ship_width, ship_height])
+
+def cross_hair(x, y):
+    # gameDisplay.blit(shipImg, (x, y))
+    pygame.draw.rect(gameDisplay, cross_hair_color, [x-5, y-5, 10,10])
 
 
 def text_objects(text, font):
@@ -154,15 +160,15 @@ def game_intro():
 
 class Meteor:
     def __init__(self):
-        self.width = 100
-        self.height = 100
+        self.width = random.randrange(90, 130)
+        self.height = self.width
         self.reset()
 
     def reset(self):
         self.x = random.randrange(0, display_width - self.width)
         self.y = -self.height
-        self.speed = random.randrange(5, 10)
-        self.direction = np.array((random.randrange(3,7), 10))
+        self.speed = random.randrange(5, 9)
+        self.direction = np.array((random.randrange(-12,12), 10))
         self.direction = self.direction / np.linalg.norm(self.direction)
 
     def move(self):
@@ -174,14 +180,14 @@ class Meteor:
         self.y += self.speed * self.direction[1]
 
     def draw(self):
-        pygame.draw.rect(gameDisplay, block_color, [int(self.x), int(self.y), self.width, self.height])
+        pygame.draw.rect(gameDisplay, meteor_color, [int(self.x), int(self.y), self.width, self.height])
 
 
 class Projectile:
     def __init__(self, direction, meteors):
         self.x = shipx + ship_width // 2
         self.y = shipy
-        self.speed = 7
+        self.speed = 20
         self.meteors = meteors
         self.alive = True
         self.length = 30
@@ -225,6 +231,7 @@ def game_loop():
     aim = np.array((aimx, aimy))
     aim = aim / np.linalg.norm(aim)
 
+    shot_timer = 0
     while not gameExit:
 
         for event in pygame.event.get():
@@ -247,16 +254,22 @@ def game_loop():
                     x_change = 0
 
         # aimx, aimy = pygame.mouse.get_pos()
+        # aim = np.array((aimx, aimy))
         pupil_positions = capture.recent_events()
         if pupil_positions:
+            print("Found Pupil")
             aimx, aimy = pupil_positions[-1]
-            aimx = aimx * display_width - shipx
-            aimy = aimy * display_height - shipy
+            aimy = 1-aimy
+            aimx = aimx * display_width
+            aimy = aimy * display_height
             aim = np.array((aimx, aimy))
-            aim = aim / np.linalg.norm(aim)
-            # print(aim)
+        else:
+            print("No pupil pos")
 
-        projectiles.append(Projectile(aim, meteors))
+        shot_timer += 1
+        if shot_timer % 20 == 0:
+            projectiles.append(Projectile(aim - (shipx + ship_width // 2, shipy), meteors))
+            shot_timer = 0
 
 
 
@@ -277,7 +290,7 @@ def game_loop():
                 tmp.append(projectile)
         projectiles = tmp
 
-
+        cross_hair(aimx, aimy)
         ship()
         # things_dodged(dodged)
 
